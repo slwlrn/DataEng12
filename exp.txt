@@ -1,0 +1,66 @@
+-Query 1: descripcion mayor a 10 caracteres
+
+db.cakes.find({
+  "detailDescription": { $regex: ".{11,}" }
+});
+
+-Query 2: Producto con menor margen de ganancia
+
+db.products.aggregate([
+  {
+    $project: {
+      _id: 1,
+      productCode: 1,
+      productName: 1,
+      productLine: 1,
+      productScale: 1,
+      productVendor: 1,
+      productDescription: 1,
+      quantityInStock: 1,
+      buyPrice: 1,
+      MSRP: 1,
+      difference: { $subtract: ["$MSRP", "$buyPrice"] }
+    }
+  },
+  {
+    $sort: { difference: 1 }
+  },
+  {
+    $limit: 1
+  }
+]);
+
+Borrar difference para poder volver a ejecutar:
+db.products.updateMany({}, { $unset: { difference: 1 } });
+
+
+Query 3:encontrar la informacion de contacto de cada customer de estados unidos con una linea de credito mayor a 200,000
+
+db.customers.find(
+  { "country": "USA", "creditLimit": { $gt: 200000 } },
+  { 
+    "contactLastName": 1,
+    "contactFirstName": 1,
+    "phone": 1,
+    "addressLine1": 1,
+    "addressLine2": 1,
+    "city": 1,
+    "state": 1,
+    "postalCode": 1,
+    "_id": 0
+  }
+);
+
+
+Query 4: muestra productos con costo mayor a 100 , de la linea classic cars con stock de menos de 5000
+
+db.products.find({
+    "productLine": "Classic Cars",
+    "quantityInStock": { $lt: 5000 },
+    "buyPrice": { $gt: 100 }
+}, {
+    "productCode": 1,
+    "productName": 1,
+    "quantityInStock": 1,
+    "_id": 0
+}).sort({"quantityInStock": 1});
